@@ -258,6 +258,28 @@ test("intSetting and clockText", () => {
   assert.equal(Model.clockText(undefined), Model.DEFAULT_REMINDER_TIME)
 })
 
+test("openCommand", () => {
+  const fallback = ["omarchy-launch-browser"]
+  assert.deepEqual(plain(Model.openCommand(undefined)), fallback)
+  assert.deepEqual(plain(Model.openCommand("omarchy-launch-webapp")), ["omarchy-launch-webapp"])
+  assert.deepEqual(plain(Model.openCommand(["chromium", "--new-window"])), ["chromium", "--new-window"])
+  const bad = [
+    null, "", [], 5, {}, ["a", 5], ["a", ""], ["a", "b\u0000"],
+    "chromium --new-window",                       // a string is one program, never split
+    ["a", "--action"], ["--with"], ["a", "--exec"], // would end the reminder's action early
+    ["-a"], Array(31).fill("a")                    // the notification shell would drop the action
+  ]
+  for (const value of bad) {
+    assert.equal(Model.parseOpenCommand(value), null)
+    assert.deepEqual(plain(Model.openCommand(value)), fallback)
+  }
+  assert.equal(Model.openCommand(Array(30).fill("a")).length, 30)
+  assert.deepEqual(plain(Model.openCommand(["a", "-b", "c d"])), ["a", "-b", "c d"])
+  // The default is never handed out for a caller to change.
+  Model.openCommand(undefined).push("x")
+  assert.deepEqual(plain(Model.openCommand(undefined)), fallback)
+})
+
 test("parseClock", () => {
   assert.equal(Model.parseClock("19:00"), 1140)
   assert.equal(Model.parseClock(" 7:30 "), 450)

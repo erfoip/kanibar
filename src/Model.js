@@ -424,11 +424,45 @@ function clockText(value) {
   return String(value === undefined || value === null ? DEFAULT_REMINDER_TIME : value).slice(0, 5)
 }
 
+// The command that opens WaniKani links, as an argv; the URL is appended as
+// its last argument. It has no row on the settings page: set it in
+// shell.json or with setSetting.
+var DEFAULT_OPEN_COMMAND = ["omarchy-launch-browser"]
+// Words that would end the command early in omarchy-notification-send.
+var NOTIFICATION_DELIMITERS = ["--action", "--with", "--exec"]
+// The notification shell drops an action of more than 32 words, link included.
+var MAX_OPEN_COMMAND_WORDS = 30
+
+// The setting as an argv, or null when it can't be used. It must work for
+// the popup and for the reminder's button alike, so it follows the
+// notification shell's rules for an action too.
+function parseOpenCommand(value) {
+  var words = value
+  if (typeof value === "string") {
+    // One program name, never split into words: a command with arguments
+    // is a list. A string with a space would name a program that isn't there.
+    if (/\s/.test(value)) return null
+    words = [value]
+  }
+  if (!Array.isArray(words) || words.length === 0 || words.length > MAX_OPEN_COMMAND_WORDS) return null
+  for (var i = 0; i < words.length; i++) {
+    var word = words[i]
+    if (typeof word !== "string" || word === "" || word.indexOf("\u0000") !== -1) return null
+    if (NOTIFICATION_DELIMITERS.indexOf(word) !== -1) return null
+  }
+  if (words[0].charAt(0) === "-") return null
+  return words.slice()
+}
+
+function openCommand(value) {
+  return parseOpenCommand(value) || DEFAULT_OPEN_COMMAND.slice()
+}
+
 // Keys the setSetting IPC call may write: the manifest's settings, except
 // apiToken, which only goes through the popup's validated token flow.
 var IPC_SETTING_KEYS = [
   "refreshMinutes", "showLessons", "hideWhenIdle", "highlightThreshold",
-  "reminderEnabled", "reminderTime", "reminderMinReviews"
+  "reminderEnabled", "reminderTime", "reminderMinReviews", "openCommand"
 ]
 
 function ipcSettingAllowed(key) {

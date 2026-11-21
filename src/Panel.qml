@@ -145,7 +145,8 @@ Panel {
   }
 
   function openUrl(url) {
-    Quickshell.execDetached(["omarchy-launch-browser", url])
+    var command = root.ready ? root.service.openCommand : Model.DEFAULT_OPEN_COMMAND
+    Quickshell.execDetached(command.concat([url]))
     root.close()
   }
 

@@ -70,6 +70,17 @@ Item {
   readonly property bool reminderEnabled: setting("reminderEnabled", false) === true
   readonly property string reminderTime: Model.clockText(setting("reminderTime", Model.DEFAULT_REMINDER_TIME))
   readonly property int reminderMinReviews: Model.intSetting(setting("reminderMinReviews", 1), 1, 1)
+  // Opens WaniKani links (popup, pill right-click, reminder button).
+  readonly property var openCommandSetting: setting("openCommand", null)
+  readonly property var openCommand: Model.openCommand(openCommandSetting)
+  // A value that can't be used would otherwise only show as links opening
+  // in the browser; say so in the shell's log.
+  onOpenCommandSettingChanged: {
+    if (openCommandSetting !== null && Model.parseOpenCommand(openCommandSetting) === null) {
+      console.warn("Kanibar: openCommand can't be used, opening links with " + Model.DEFAULT_OPEN_COMMAND[0]
+                   + ". Use a program name, or a list of words for a command with arguments.")
+    }
+  }
 
   // ---------- State ----------
   // Everything between here and "End of account state" belongs to the
@@ -231,6 +242,7 @@ Item {
     active: service.attached && service.reminderEnabled && service.hasToken
     clockMinutes: Model.parseClock(service.reminderTime)
     minReviews: service.reminderMinReviews
+    openCommand: service.openCommand
     onSummaryFetched: function(summary) { service.summary = summary }
   }
 

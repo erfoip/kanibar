@@ -15,6 +15,7 @@ Item {
   property bool active: false       // setting on and a token present
   property int clockMinutes: -1     // Model.parseClock of the setting
   property int minReviews: 1
+  property var openCommand: Model.DEFAULT_OPEN_COMMAND
 
   // Date key of the last day handled, "" if none.
   property string lastDate: ""
@@ -77,8 +78,8 @@ Item {
       "-g", Model.ICON_GLYPH,
       "-u", "normal",
       headline, body,
-      "--action", l10n.t("reminder.action"), "omarchy-launch-browser", Model.REVIEW_URL
-    ]
+      "--action", l10n.t("reminder.action")
+    ].concat(reminder.openCommand, [Model.REVIEW_URL])
     notifyProc.running = true
   }
 

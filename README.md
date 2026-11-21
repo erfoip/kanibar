@@ -154,6 +154,21 @@ The minimum number of waiting reviews needed to send a reminder. Raise it if a h
 
 **Send test notification** (settings page) sends the reminder right now with your current counts, so you can see what it looks like. The "already sent today" note appears once today's reminder has fired.
 
+### Links
+
+#### `openCommand`: Command that opens links
+*String or list of strings, default `"omarchy-launch-browser"`. Not on the settings page: edit `shell.json` or use [`setSetting`](#command-line-and-keybindings).*
+Links are opened by running this command with the link as its last argument. To use a different one, for example an Omarchy web app:
+
+```json
+{
+  "id": "io.github.erfoip.kanibar",
+  "openCommand": "omarchy-launch-webapp"
+}
+```
+
+A command with arguments is a list, one word per entry, e.g. `["chromium", "--new-window"]`. It isn't run through a shell, and a string is always one program name, never split into words. A value that can't be used falls back to the default and is reported in the shell's log (`journalctl --user -t omarchy-shell`).
+
 ### Account
 
 The token is not a setting: it lives only in your system keyring.
@@ -220,6 +235,7 @@ Only English ships so far. Translations are welcome:
 - **Token storage.** The token is kept in your system keyring through libsecret's `secret-tool` (gnome-keyring on Omarchy), not in a kanibar file or in `shell.json`. It reaches `secret-tool` on stdin and comes back on stdout, so it never appears in the process list. It's sent only to `api.wanikani.com`, and only if it has the exact format of a WaniKani API token.
 - **What the keyring does and doesn't protect.** It keeps the token out of kanibar's own code and out of config files that tend to end up in dotfiles. It doesn't shield the token from programs running as you: any of them can ask the keyring for it, as with any app's secret on Linux. Whether it's encrypted on disk depends on your keyring's password. Omarchy's default keyring has none, so its file in `~/.local/share/keyrings` is unencrypted and readable only by you. To encrypt it, set a password on the keyring in Seahorse; you'll then be asked to unlock it once per session, the first time an app needs a secret.
 - **Defensive by default.** Every request goes to the fixed HTTPS address `api.wanikani.com` through `curl`, gives up after 15 seconds, and is dropped if the response exceeds 2 MB. The token reaches curl on stdin, never on the command line. Redirects are never followed, so the token can't be forwarded to another host, and your `~/.curlrc` is ignored so it can't change that. Data from the API is validated before use: counts are kept within sane ranges, lists are capped, and text such as usernames and kanji meanings is length-limited and always shown as plain text, never interpreted as markup.
+- **Opening links.** Links are opened with `omarchy-launch-browser` or your `openCommand`, run directly (no shell) with a fixed `wanikani.com` address. No token or API data is passed to it.
 - **Requests.**
   - **Background refresh:** 2 requests (`/summary`, `/user`) every `refreshMinutes` and after each full hour. You can turn this off.
   - **Popup details:** 7 more (5 stage counts plus 2 for the current level), only while the popup is open and at most every two minutes.

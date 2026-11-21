@@ -27,7 +27,8 @@
       "highlightThreshold": 0,
       "reminderEnabled": false,
       "reminderTime": "19:00",
-      "reminderMinReviews": 1
+      "reminderMinReviews": 1,
+      "openCommand": "omarchy-launch-browser"
     },
     "schema": [
       {
@@ -86,6 +87,13 @@
         "step": 1,
         "defaultValue": 1,
         "description": "Only remind when at least this many reviews are waiting."
+      },
+      {
+        "key": "openCommand",
+        "type": "string",
+        "label": "Command that opens links",
+        "defaultValue": "omarchy-launch-browser",
+        "description": "Run with the link as its last argument, e.g. omarchy-launch-webapp. In shell.json it can also be a list of words for a command with arguments."
       }
     ]
   }
